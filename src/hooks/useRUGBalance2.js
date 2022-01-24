@@ -3,23 +3,26 @@ import { useEffect, useState } from "react";
 import { useMoralisWeb3Api, useMoralisWeb3ApiCall } from "react-moralis";
 import { useIPFS } from "./useIPFS";
 
-export const useNFTBalance = (options) => {
+export const useRUGBalance2 = (options) => {
   const { account } = useMoralisWeb3Api();
-  const { chainId } = useMoralisDapp();
+  const { chainId, walletAddress } = useMoralisDapp();
   const { resolveLink } = useIPFS();
-  const [NFTBalance, setNFTBalance] = useState([]);
+  const [RUGBalance, setRUGBalance] = useState([]);
+  const [totalNFTs, setTotalNFTs] = useState();
   const {
-    fetch: getNFTBalance,
+    fetch: getRUGBalance,
     data,
     error,
     isLoading,
-  } = useMoralisWeb3ApiCall(account.getNFTs, { chain: chainId, ...options });
+  } = useMoralisWeb3ApiCall(account.getNFTsForContract, { chain: chainId, ...options, token_address: "0xBe169ba8097583318A84014657eEcB5b32b283B8" });
   const [fetchSuccess, setFetchSuccess] = useState(true);
 
   useEffect(async () => {
     if (data?.result) {
+      
       const NFTs = data.result;
       setFetchSuccess(true);
+      setTotalNFTs(data.total);
       for (let NFT of NFTs) {
         if (NFT?.metadata) {
           NFT.metadata = JSON.parse(NFT.metadata);
@@ -53,10 +56,10 @@ export const useNFTBalance = (options) => {
           }
         }
       }
-      setNFTBalance(NFTs);
+      setRUGBalance(NFTs);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  return { getNFTBalance, NFTBalance, fetchSuccess, error, isLoading };
+  return { getRUGBalance, RUGBalance, totalNFTs, fetchSuccess, error, isLoading };
 };
