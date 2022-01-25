@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import { useMoralis } from "react-moralis";
-import { Card, Image, Tooltip, Modal, Input, Alert, Spin, Button } from "antd";
+import { Card, Image, Tooltip, Modal, Input, Alert, Spin, Button, InputNumber, PageHeader } from "antd";
 import { useRUGBalance2 } from "hooks/useRUGBalance2";
-import { FileSearchOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { FileSearchOutlined, ArrowRightOutlined, FireOutlined, CheckOutlined, WalletOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import { getExplorer } from "helpers/networks";
 import { useWeb3ExecuteFunction } from "react-moralis";
+import Text from "antd/lib/typography/Text";
+import { Link } from "react-router-dom";
+import Burn from "components/Burn";
+
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    NavLink,
+    Redirect,
+  } from "react-router-dom";
 const { Meta } = Card;
 
 const styles = {
@@ -18,6 +29,97 @@ const styles = {
     maxWidth: "1000px",
     gap: "10px",
   },
+
+  title: {
+    fontSize: "20px",
+    fontWeight: "700", 
+    textAlign: "center",
+    flex: "1",
+    textWrap: "wrap"
+  },
+
+  alertsHeader: {
+    display: "flex",
+    flexWrap: "wrap",
+    WebkitBoxPack: "center",
+    fontFamily: "Roboto, sans-serif",
+    
+    gap: "10px",
+    fontSize: "18.3px", 
+    fontWeight: "600", 
+    justifyContent: 'center', 
+    alignItems: "center", 
+    gap: "20px", 
+    padding: "10px", 
+    alignSelf: "center",
+    float: "none",
+    whiteSpace: "nowrap",
+  },
+
+  alerts: {
+    display: "flex",
+    
+    flexWrap: "wrap",
+    flexDirection: "row",
+    WebkitBoxPack: "center",
+    gap: "10px",
+    fontSize: "18.3px", 
+    fontWeight: "600", 
+    alignItems: "center", 
+    gap: "10px", 
+    
+    flexGrow: "1",
+    justifyContent: "center",
+    fontFamily: "Roboto, sans-serif",
+    float: "none",
+    alignSelf: "center",
+    padding: "10px", 
+ 
+  },
+
+  navLink: {
+    display: "flex",
+    flexWrap: "wrap",
+    fontSize: "28px", 
+    fontWeight: "600",
+    justifyContent: 'center', 
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    WebkitBoxPack: "start",
+    margin: "0 auto",
+    height: "55px"
+
+
+  },
+
+  break: {
+    flexBasis: "100%",
+    height: "0",
+  },
+
+  card: {
+    boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
+    border: "1px solid #e7eaf3",
+    borderRadius: "40px",
+    width: "900px",
+    height: "160px",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  card2: {
+    boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
+    border: "1px solid #e7eaf3",
+    borderRadius: "40px",
+    width: "900px",
+    height: "60px",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+
 };
 
 
@@ -26,7 +128,7 @@ function RUGBalance() {
   const { chainId, marketAddress, contractABI, crContractABI, crAddress, mrAddress, mrContractABI } = useMoralisDapp();
   const { Moralis } = useMoralis();
   const [visible, setVisibility] = useState(false);
-  const [nftToSend, setNftToSend] = useState(null);
+  const [nftToBurn, setnftToBurn] = useState(null);
   const [price, setPrice] = useState(1);
   const [loading, setLoading] = useState(false);
   const contractProcessor = useWeb3ExecuteFunction();
@@ -35,10 +137,11 @@ function RUGBalance() {
   const ItemImage = Moralis.Object.extend("ItemImages");
   const setApprovalForAllFunction = "setApprovalForAll";
   const burn2mint_ONE_RUGFunction = "burn2mint_ONE_RUG"
-  const [nftToBurn, setnftToBurn] = useState(null);
   const [approve, setapproval] = useState(null);
   const crContractABIJson = JSON.parse(crContractABI);
   const mrContractABIJson = JSON.parse(mrContractABI);
+  
+  
 
   async function setApprovalForAll(){
     setLoading(true); 
@@ -56,7 +159,6 @@ function RUGBalance() {
       onSuccess: () => {
         console.log("Approval Received");
         setLoading(false);
-        setVisibility(false);
         succApprove();
       },
       onError: (error) => {
@@ -84,11 +186,11 @@ async function burn2mint_ONE_RUG(nft) {
             setLoading(false);
             setVisibility(false);
             addItemImage();
-            succList();
+            succBurn();
           },
           onError: (error) => {
             setLoading(false);
-            failList();
+            failBurn();
           },
     })
   }
@@ -148,29 +250,29 @@ async function burn2mint_ONE_RUG(nft) {
     await contractProcessor.fetch({
       params: ops,
       onSuccess: () => {
-        console.log("success");
+        console.log("CryptoRug burned successfully - MetaRug minted");
         setLoading(false);
         setVisibility(false);
         addItemImage();
-        succList();
+        succBurn();
       },
       onError: (error) => {
         setLoading(false);
-        failList();
+        failBurn();
       },
     });
   }
 
   const handleSellClick = (nft) => {
-    setNftToSend(nft);
+    setnftToBurn(nft);
     setVisibility(true);
   };
 
-  function succList() {
+  function succBurn() {
     let secondsToGo = 5;
     const modal = Modal.success({
       title: "Success!",
-      content: `Your NFT was listed on the marketplace`,
+      content: `CryptoRug burned successfully - MetaRug minted`,
     });
     setTimeout(() => {
       modal.destroy();
@@ -181,14 +283,14 @@ async function burn2mint_ONE_RUG(nft) {
     let secondsToGo = 5;
     const modal = Modal.success({
       title: "Success!",
-      content: `Approval is now set, you may list your NFT`,
+      content: `Approval is now set, you may burn your RUG`,
     });
     setTimeout(() => {
       modal.destroy();
     }, secondsToGo * 1000);
   }
 
-  function failList() {
+  function failBurn() {
     let secondsToGo = 5;
     const modal = Modal.error({
       title: "Error!",
@@ -213,30 +315,51 @@ async function burn2mint_ONE_RUG(nft) {
   function addItemImage() {
     const itemImage = new ItemImage();
 
-    itemImage.set("image", nftToSend.image);
-    itemImage.set("nftContract", nftToSend.token_address);
-    itemImage.set("tokenId", nftToSend.token_id);
-    itemImage.set("name", nftToSend.name);
+    itemImage.set("image", nftToBurn.image);
+    itemImage.set("nftContract", nftToBurn.token_address);
+    itemImage.set("tokenId", nftToBurn.token_id);
+    itemImage.set("name", nftToBurn.name);
     itemImage.save();
   }
 
   return (
-    <>
-      <div style={styles.NFTs}>
+    <> 
+
+        <div>     
+            <Card style={styles.card2} title={<h1 style={styles.title}> {"Congratulations, you've been provably rugged " + totalNFTs + " times"} </h1>}>
+            </Card>
+         
+        <div >
+        <Card style={styles.card} title={<h1 style={styles.title}> {"You can mint a MetaRug for each CryptoRug you burn. You can also burn all your rugs at once!"} </h1>}  >
+        <div> <NavLink className="center-block" style={styles.navLink}   to="/burn">🔥 Burn All & Mint MetaRugs</NavLink>  </div>
+            </Card>
+   
+        <div>
+        <Card style={styles.card} title={<h1 style={styles.title}> {"If you don't have CryptoRugs you can find more at Opensea"} </h1>}>
+        <div> <Button style={styles.navLink} onClick={()=> window.open("https://opensea.io/collection/thecryptorugs", "_blank" )}>CryptoRugs on OpenSea</Button> </div>
+        
+            </Card>
+        
+        </div>
+        </div>
+
+
+   
+
+
+    
+   
+
+
+      <div style={styles.NFTs}> 
           <> 
-            <Alert style={{  display: 'flex', justifyContent: 'center', alignItems: "center", gap: "20px", padding: "10px" }}
-              message={"Congratulations, you've been provably rugged " + totalNFTs + " times. You can mint a MetaRug for each CryptoRug you got."}
-            /> 
-             <Alert style={{  display: 'flex', justifyContent: 'center', alignItems: "center", gap: "20px", padding: "10px" }}
-              message={"If you don't have enough CryptoRugs you can find them on OpenSea. MetaRugs can also be minted for 0.05 ETH each"}
-            />
-            <div >
-            </div>
-          </>
+        
             
+          </> 
+         
         {!fetchSuccess && (
           <>
-            <Alert
+            <Alert 
               message="Unable to fetch all NFT metadata... We are searching for a solution, please try again later!"
               type="warning"
             />
@@ -246,20 +369,20 @@ async function burn2mint_ONE_RUG(nft) {
         {RUGBalance &&
           RUGBalance.map((nft, index) => (
             <Card
-              hoverable
-              actions={[
+              hoverable onClick={() => handleBurn2Mint_ONE_RUG(nft)}
+              actions={[ 
                 <Tooltip title="View On Blockexplorer">
                   <FileSearchOutlined
                     onClick={() =>
                       window.open(
-                        `${getExplorer(chainId)}address/${nft.token_address}`,
+                        `${getExplorer(chainId)}token/${nft.token_address}?a=${nft.token_id}`,
                         "_blank"
                       )
                     }
                   />
-                </Tooltip>,
-                <Tooltip title="List NFT for sale">
-                  <ShoppingCartOutlined onClick={() => handleSellClick(nft)} />
+                     </Tooltip>,
+                <Tooltip title="Burn 2 Mint">
+                  <FireOutlined onClick={() => handleBurn2Mint_ONE_RUG(nft)} />
                 </Tooltip>,
               ]}
               style={{ width: 300, border: "2px solid #e7eaf3" }}
@@ -274,32 +397,32 @@ async function burn2mint_ONE_RUG(nft) {
               }
               key={index}
             >
-              <Meta title={nft.name} description={nft.contract_type} />
+              <Meta title={nft.name + " #" + nft.token_id} description={nft.token_address}  />
             </Card>
           ))}
       </div>
 
       <Modal
-        title={`List ${nftToSend?.name} #${nftToSend?.token_id} For Sale`}
+        title={`Burn ${nftToBurn?.name + " #" + nftToBurn?.token_id || "NFT"}`}
         visible={visible}
         onCancel={() => setVisibility(false)}
-        onOk={() => list(nftToSend, price)}
-        okText="List"
+        onOk={() => burn2mint_ONE_RUG(nftToBurn)}
+        okText="Burn"
         footer={[
           <Button onClick={() => setVisibility(false)}>
             Cancel
           </Button>,
-          <Button onClick={() => approveAll(nftToSend)} type="primary">
+          <Button onClick={() => setApprovalForAll()} type="primary">
             Approve
           </Button>,
-          <Button onClick={() => list(nftToSend, price)} type="primary">
-            List
+          <Button onClick={() => burn2mint_ONE_RUG(nftToBurn)} type="primary">
+            Burn
           </Button>
         ]}
       >
         <Spin spinning={loading}>
           <img
-            src={`${nftToSend?.image}`}
+            src={`${nftToBurn?.image}`}
             style={{
               width: "250px",
               margin: "auto",
@@ -314,6 +437,7 @@ async function burn2mint_ONE_RUG(nft) {
           />
         </Spin>
       </Modal>
+      </div>
     </>
   );
 }
