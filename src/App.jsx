@@ -104,7 +104,7 @@ const App = ({ isServerInfo }) => {
         </Header>
         <div style={styles.content}>
           <Switch>
-          <Route path="/Home">
+          <Route path="/home">
               <Home isServerInfo={isServerInfo} />
             </Route>
             <Route path="/rugBalance">
@@ -117,7 +117,7 @@ const App = ({ isServerInfo }) => {
               <NFTMarketTransactions />
             </Route>
           </Switch>
-          <Redirect to="/NFTMarketPlace" />
+          <Redirect to="/home" />
         </div>
       </Router>
       <Footer style={{ textAlign: "center" }}>

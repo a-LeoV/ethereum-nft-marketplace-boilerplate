@@ -323,7 +323,8 @@ async function burn2mint_ONE_RUG(nft) {
   }
 
   return (
-    <> 
+   
+   <> 
 
         <div>     
             <Card style={styles.card2} title={<h1 style={styles.title}> {"Congratulations, you've been provably rugged " + totalNFTs + " times"} </h1>}>
