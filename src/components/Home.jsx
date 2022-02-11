@@ -1,6 +1,6 @@
 import { Card, Button } from "antd";
 import Image from "rc-image";
-import metagif from "./images/MetaRugs_-_Logo V3.gif"
+import metagif from "./images/MetaRugsTGif.gif"
 import { useRUGBalance2 } from "hooks/useRUGBalance2";
 
 

@@ -323,8 +323,7 @@ async function burn2mint_ONE_RUG(nft) {
   }
 
   return (
-   
-   <> 
+    <> 
 
         <div>     
             <Card style={styles.card2} title={<h1 style={styles.title}> {"Congratulations, you've been provably rugged " + totalNFTs + " times"} </h1>}>
@@ -336,7 +335,7 @@ async function burn2mint_ONE_RUG(nft) {
             </Card>
    
         <div>
-        <Card style={styles.card} title={<h1 style={styles.title}> {"If you don't have CryptoRugs you can find more at Opensea"} </h1>}>
+        <Card style={styles.card} title={<h1 style={styles.title}> {"If you somehow like being rugged you can check CryptoRugs on OpenSea"} </h1>}>
         <div> <Button style={styles.navLink} onClick={()=> window.open("https://opensea.io/collection/thecryptorugs", "_blank" )}>CryptoRugs on OpenSea</Button> </div>
         
             </Card>

@@ -58,7 +58,6 @@ const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading } =
     useMoralis();
     
-  const [inputValue, setInputValue] = useState("explore");
 
   useEffect(() => {
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3();
@@ -70,8 +69,7 @@ const App = ({ isServerInfo }) => {
       <Router>
         <Header style={styles.header}>
           <Logo />
-          <SearchCollections setInputValue={setInputValue}/>
-          <Menu
+           <Menu
             theme="light"
             mode="horizontal"
             style={{
@@ -80,6 +78,7 @@ const App = ({ isServerInfo }) => {
               fontWeight: "500",
               marginLeft: "50px",
               width: "100%",
+              justifyContent: 'center'
             }}
             defaultSelectedKeys={["home"]}
           >
@@ -104,7 +103,7 @@ const App = ({ isServerInfo }) => {
         </Header>
         <div style={styles.content}>
           <Switch>
-          <Route path="/home">
+          <Route path="/Home">
               <Home isServerInfo={isServerInfo} />
             </Route>
             <Route path="/rugBalance">
@@ -117,7 +116,7 @@ const App = ({ isServerInfo }) => {
               <NFTMarketTransactions />
             </Route>
           </Switch>
-          <Redirect to="/home" />
+          <Redirect to="/Home" />
         </div>
       </Router>
       <Footer style={{ textAlign: "center" }}>

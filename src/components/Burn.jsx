@@ -3,6 +3,9 @@ import { useWeb3ExecuteFunction } from "react-moralis";
 import { Card, Button, InputNumber, Typography } from "antd";
 import React, { useState } from "react";
 import { FireOutlined, CheckOutlined, WalletOutlined } from "@ant-design/icons";
+import { useAPIContract } from "hooks/useAPIContract";
+import { useIsApproved } from "hooks/useIsApproved3";
+
 const { Text } = Typography;
 
 
@@ -82,14 +85,19 @@ function Burn () {
   
     const { chainId, crContractABI, crAddress, mrAddress, mrContractABI, walletAddress } = useMoralisDapp();
     const contractProcessor = useWeb3ExecuteFunction();
+
     const crContractABIJson = JSON.parse(crContractABI);
     const mrContractABIJson = JSON.parse(mrContractABI);
     const setApprovalForAllFunction = "setApprovalForAll";
     const burn2mint_ALL_RUGSFunction = "burn2mint_ALL_RUGS";
+    const isApprovedForAllFunction = "isApprovedForAll";
     const mintFunction = "mint";
     const [amountToMint, setAmount] = useState(null);
     const pricePerMR = "50000000000000";
-    
+   
+  const { isApproved } = useIsApproved();
+
+   
 
      async function setApprovalForAll(){
           const ops = {
@@ -111,6 +119,7 @@ function Burn () {
             },
         })
       }
+
     
     async function burn2mint_ALL_RUGS(){
       const ops = {
@@ -160,11 +169,13 @@ function Burn () {
         setAmount(value);
       }
 
+
+
     return (
     <div style={{ display: "flex", gap: "10px", maxWidth: "820px", flexWrap: "wrap" }}>
       <Card style={styles.card} title={<h1 style={styles.title}>📝 Approve Meta Rugs contract</h1>}>
       <Button style={styles.buttons} icon={<CheckOutlined />} 
-        onClick={() => setApprovalForAll()}
+        onClick={() => setApprovalForAll()} 
         > Approve</Button>
       </Card>
       
@@ -186,7 +197,7 @@ function Burn () {
     
         <Button style={styles.buttons2} icon={<WalletOutlined />} 
         onClick={() => mintArug(amountToMint)}
-        > Mint</Button>
+        > {"Mint" + isApproved + "2" }</Button>
         </Card>
         </div>
 
