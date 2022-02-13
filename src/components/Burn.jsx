@@ -1,14 +1,10 @@
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
-import { useWeb3ExecuteFunction } from "react-moralis";
+import { useWeb3ExecuteFunction, useMoralisWeb3ApiCall } from "react-moralis";
 import { Card, Button, InputNumber, Typography } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FireOutlined, CheckOutlined, WalletOutlined } from "@ant-design/icons";
-import { useAPIContract } from "hooks/useAPIContract";
-import { useIsApproved } from "hooks/useIsApproved3";
 
 const { Text } = Typography;
-
-
 const styles = {
   title: {
     fontSize: "16px",
@@ -60,6 +56,25 @@ const styles = {
     fontSize: "40px",
     fontWeight: "700",
   },
+  disabledButtons: {
+    background: "#D5D5D5",
+    color: "grey",
+    shape: "round",
+    padding: "10px",
+    border: "none",
+    display: "flex",
+    flex: "1",
+    width: "350px",
+    height: "130px",
+    justifyContent: 'center',
+    flexDirection: "column",
+    alignItems: "center",
+    cursor: "pointer",
+    boxShadow: "0px 2px 2px lightgray",
+    borderRadius: "40px",
+    fontSize: "40px",
+    fontWeight: "300",
+  },
   buttons2: {
     background: "blue",
     color: "white",
@@ -85,7 +100,6 @@ function Burn () {
   
     const { chainId, crContractABI, crAddress, mrAddress, mrContractABI, walletAddress } = useMoralisDapp();
     const contractProcessor = useWeb3ExecuteFunction();
-
     const crContractABIJson = JSON.parse(crContractABI);
     const mrContractABIJson = JSON.parse(mrContractABI);
     const setApprovalForAllFunction = "setApprovalForAll";
@@ -94,10 +108,36 @@ function Burn () {
     const mintFunction = "mint";
     const [amountToMint, setAmount] = useState(null);
     const pricePerMR = "50000000000000";
-   
-  const { isApproved } = useIsApproved();
+    const [isApproved, setIsApproved] = useState(false);
+    const SECOND_MS = 1000;
+    
+    async function callIsApproved(){
+      
+      const ops = {
+        chain: chainId,
+        contractAddress: crAddress,
+        functionName: isApprovedForAllFunction,
+        abi: crContractABIJson,
+      params : {
+          owner: walletAddress,
+          operator: mrAddress,
+      }
+      };
+      await contractProcessor.fetch({
+        params: ops,
+        onSuccess: () => {
+          setIsApproved(contractProcessor.data)
+        },
+    })
+  }
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      callIsApproved();
+    }, SECOND_MS);
    
+     return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
+   }, [callIsApproved])
 
      async function setApprovalForAll(){
           const ops = {
@@ -174,9 +214,15 @@ function Burn () {
     return (
     <div style={{ display: "flex", gap: "10px", maxWidth: "820px", flexWrap: "wrap" }}>
       <Card style={styles.card} title={<h1 style={styles.title}>📝 Approve Meta Rugs contract</h1>}>
-      <Button style={styles.buttons} icon={<CheckOutlined />} 
+      <Button icon={<CheckOutlined />} style={styles.buttons}
+        style={ 
+          isApproved == true
+            ? styles.disabledButtons
+            : styles.buttons
+      }
         onClick={() => setApprovalForAll()} 
-        > Approve</Button>
+        disabled={isApproved == true}
+        > {isApproved ? "Approved" : "Approve"}</Button>
       </Card>
       
       <div>
@@ -197,11 +243,11 @@ function Burn () {
     
         <Button style={styles.buttons2} icon={<WalletOutlined />} 
         onClick={() => mintArug(amountToMint)}
-        > {"Mint" + isApproved + "2" }</Button>
+        > Mint</Button>
         </Card>
         </div>
-
       </div>
+      
     
   )
 
