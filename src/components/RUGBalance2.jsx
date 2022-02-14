@@ -1,24 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useMoralis } from "react-moralis";
-import { Card, Image, Tooltip, Modal, Input, Alert, Spin, Button, InputNumber, PageHeader } from "antd";
+import { Card, Image, Tooltip, Modal, Alert, Spin, Button } from "antd";
 import { useRUGBalance2 } from "hooks/useRUGBalance2";
-import { FileSearchOutlined, ArrowRightOutlined, FireOutlined, CheckOutlined, WalletOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { FileSearchOutlined, FireOutlined } from "@ant-design/icons";
 import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvider";
 import { getExplorer } from "helpers/networks";
 import { useWeb3ExecuteFunction } from "react-moralis";
-import Text from "antd/lib/typography/Text";
-import { Link } from "react-router-dom";
-import Burn from "components/Burn";
-
+import altRug from "./Images/CryptoRugsUnrevealed.jpg"
 import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    NavLink,
-    Redirect,
-  } from "react-router-dom";
-const { Meta } = Card;
+       NavLink,
+    } from "react-router-dom";
 
+const { Meta } = Card;
 const styles = {
   NFTs: {
     display: "flex",
@@ -29,7 +22,6 @@ const styles = {
     maxWidth: "1000px",
     gap: "10px",
   },
-
   title: {
     fontSize: "20px",
     fontWeight: "700", 
@@ -37,46 +29,38 @@ const styles = {
     flex: "1",
     textWrap: "wrap"
   },
-
   alertsHeader: {
     display: "flex",
     flexWrap: "wrap",
     WebkitBoxPack: "center",
     fontFamily: "Roboto, sans-serif",
-    
     gap: "10px",
     fontSize: "18.3px", 
     fontWeight: "600", 
     justifyContent: 'center', 
     alignItems: "center", 
-    gap: "20px", 
+  
     padding: "10px", 
     alignSelf: "center",
     float: "none",
     whiteSpace: "nowrap",
   },
-
   alerts: {
     display: "flex",
-    
     flexWrap: "wrap",
     flexDirection: "row",
     WebkitBoxPack: "center",
-    gap: "10px",
     fontSize: "18.3px", 
     fontWeight: "600", 
     alignItems: "center", 
     gap: "10px", 
-    
     flexGrow: "1",
     justifyContent: "center",
     fontFamily: "Roboto, sans-serif",
     float: "none",
     alignSelf: "center",
     padding: "10px", 
- 
   },
-
   navLink: {
     display: "flex",
     flexWrap: "wrap",
@@ -88,15 +72,11 @@ const styles = {
     WebkitBoxPack: "start",
     margin: "0 auto",
     height: "55px"
-
-
   },
-
   break: {
     flexBasis: "100%",
     height: "0",
   },
-
   card: {
     boxShadow: "0 0.5rem 1.2rem rgb(189 197 209 / 20%)",
     border: "1px solid #e7eaf3",
@@ -125,23 +105,48 @@ const styles = {
 
 function RUGBalance() {
   const { RUGBalance, totalNFTs, fetchSuccess } = useRUGBalance2();
-  const { chainId, marketAddress, contractABI, crContractABI, crAddress, mrAddress, mrContractABI } = useMoralisDapp();
+  const { chainId, crContractABI, crAddress, mrAddress, mrContractABI, walletAddress } = useMoralisDapp();
   const { Moralis } = useMoralis();
   const [visible, setVisibility] = useState(false);
   const [nftToBurn, setnftToBurn] = useState(null);
-  const [price, setPrice] = useState(1);
   const [loading, setLoading] = useState(false);
   const contractProcessor = useWeb3ExecuteFunction();
-  const contractABIJson = JSON.parse(contractABI);
-  const listItemFunction = "createMarketItem";
   const ItemImage = Moralis.Object.extend("ItemImages");
   const setApprovalForAllFunction = "setApprovalForAll";
   const burn2mint_ONE_RUGFunction = "burn2mint_ONE_RUG"
-  const [approve, setapproval] = useState(null);
+  const isApprovedForAllFunction = "isApprovedForAll";
   const crContractABIJson = JSON.parse(crContractABI);
   const mrContractABIJson = JSON.parse(mrContractABI);
-  
-  
+  const [isApproved, setIsApproved] = useState(false);
+  const SECOND_MS = 1000;
+
+useEffect(() => {
+  async function callIsApproved(){
+      
+    const ops = {
+      chain: chainId,
+      contractAddress: crAddress,
+      functionName: isApprovedForAllFunction,
+      abi: crContractABIJson,
+    params : {
+        owner: walletAddress,
+        operator: mrAddress,
+    }
+    };
+    await contractProcessor.fetch({
+      params: ops,
+      onSuccess: () => {
+        setIsApproved(contractProcessor.data)
+      },
+  })
+}
+  const interval = setInterval(() => {
+    callIsApproved();
+  }, SECOND_MS);
+ 
+   return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [isApproved])
 
   async function setApprovalForAll(){
     setLoading(true); 
@@ -200,73 +205,6 @@ async function burn2mint_ONE_RUG(nft) {
     setVisibility(true);
   };
 
-  const handlesetApprovalForAll = (approve) => {
-    setapproval(approve);
-    setVisibility(true);
-  };
-
-
-  async function approveAll(nft) {
-    setLoading(true);  
-    const ops = {
-      contractAddress: nft.token_address,
-      functionName: "setApprovalForAll",
-      abi: [{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"}],
-      params: {
-        operator: marketAddress,
-        approved: true
-      },
-    };
-
-    await contractProcessor.fetch({
-      params: ops,
-      onSuccess: () => {
-        console.log("Approval Received");
-        setLoading(false);
-        setVisibility(false);
-        succApprove();
-      },
-      onError: (error) => {
-        setLoading(false);
-        failApprove();
-      },
-    });
-  }
-
-  async function list(nft, listPrice) {
-    setLoading(true);
-    const p = listPrice * ("1e" + 18);
-    const ops = {
-      contractAddress: marketAddress,
-      functionName: listItemFunction,
-      abi: contractABIJson,
-      params: {
-        nftContract: nft.token_address,
-        tokenId: nft.token_id,
-        price: String(p),
-      },
-    };
-
-    await contractProcessor.fetch({
-      params: ops,
-      onSuccess: () => {
-        console.log("CryptoRug burned successfully - MetaRug minted");
-        setLoading(false);
-        setVisibility(false);
-        addItemImage();
-        succBurn();
-      },
-      onError: (error) => {
-        setLoading(false);
-        failBurn();
-      },
-    });
-  }
-
-  const handleSellClick = (nft) => {
-    setnftToBurn(nft);
-    setVisibility(true);
-  };
 
   function succBurn() {
     let secondsToGo = 5;
@@ -333,30 +271,15 @@ async function burn2mint_ONE_RUG(nft) {
         <Card style={styles.card} title={<h1 style={styles.title}> {"You can mint a MetaRug for each CryptoRug you burn. You can also burn all your rugs at once!"} </h1>}  >
         <div> <NavLink className="center-block" style={styles.navLink}   to="/burn">🔥 Burn All & Mint MetaRugs</NavLink>  </div>
             </Card>
-   
         <div>
         <Card style={styles.card} title={<h1 style={styles.title}> {"If you somehow like being rugged you can check CryptoRugs on OpenSea"} </h1>}>
         <div> <Button style={styles.navLink} onClick={()=> window.open("https://opensea.io/collection/thecryptorugs", "_blank" )}>CryptoRugs on OpenSea</Button> </div>
-        
             </Card>
-        
         </div>
         </div>
-
-
-   
-
-
-    
-   
-
-
       <div style={styles.NFTs}> 
           <> 
-        
-            
           </> 
-         
         {!fetchSuccess && (
           <>
             <Alert 
@@ -412,8 +335,8 @@ async function burn2mint_ONE_RUG(nft) {
           <Button onClick={() => setVisibility(false)}>
             Cancel
           </Button>,
-          <Button onClick={() => setApprovalForAll()} type="primary">
-            Approve
+          <Button disabled={isApproved === true} onClick={() => setApprovalForAll()} type="primary">
+            {isApproved ? "Approved" : "Approve"}
           </Button>,
           <Button onClick={() => burn2mint_ONE_RUG(nftToBurn)} type="primary">
             Burn
@@ -423,17 +346,13 @@ async function burn2mint_ONE_RUG(nft) {
         <Spin spinning={loading}>
           <img
             src={`${nftToBurn?.image}`}
+            alt={altRug}
             style={{
               width: "250px",
               margin: "auto",
               borderRadius: "10px",
               marginBottom: "15px",
             }}
-          />
-          <Input
-            autoFocus
-            placeholder="Listing Price in MATIC"
-            onChange={(e) => setPrice(e.target.value)}
           />
         </Spin>
       </Modal>

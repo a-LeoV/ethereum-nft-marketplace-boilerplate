@@ -5,7 +5,7 @@ import { useIPFS } from "./useIPFS";
 
 export const useRUGBalance2 = (options) => {
   const { account } = useMoralisWeb3Api();
-  const { chainId, walletAddress } = useMoralisDapp();
+  const { chainId } = useMoralisDapp();
   const { resolveLink } = useIPFS();
   const [RUGBalance, setRUGBalance] = useState([]);
   const [totalNFTs, setTotalNFTs] = useState();
@@ -17,7 +17,8 @@ export const useRUGBalance2 = (options) => {
   } = useMoralisWeb3ApiCall(account.getNFTsForContract, { chain: chainId, ...options, token_address: "0xBe169ba8097583318A84014657eEcB5b32b283B8" });
   const [fetchSuccess, setFetchSuccess] = useState(true);
 
-  useEffect(async () => {
+  useEffect(() => {
+    (async function() {
     if (data?.result) {
       
       const NFTs = data.result;
@@ -59,7 +60,7 @@ export const useRUGBalance2 = (options) => {
       setRUGBalance(NFTs);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  })()}, [data]);
 
   return { getRUGBalance, RUGBalance, totalNFTs, fetchSuccess, error, isLoading };
 };

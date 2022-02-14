@@ -74,6 +74,7 @@ const styles = {
     borderRadius: "40px",
     fontSize: "40px",
     fontWeight: "300",
+    cursor: "not-allowed",
   },
   buttons2: {
     background: "blue",

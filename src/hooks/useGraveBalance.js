@@ -2,31 +2,33 @@ import { useMoralisDapp } from "providers/MoralisDappProvider/MoralisDappProvide
 import { useEffect, useState } from "react";
 import { useMoralisWeb3Api, useMoralisWeb3ApiCall } from "react-moralis";
 import { useIPFS } from "./useIPFS";
+import { getCollectionsByChain } from "helpers/collections";
+import SearchCollections from "components/SearchCollections";
 
-export const useNFTTokenIds = (addr) => {
-  const { token } = useMoralisWeb3Api();
+export const useGraveBalance = (addr) => {
+  const { account } = useMoralisWeb3Api();
   const { chainId } = useMoralisDapp();
   const { resolveLink } = useIPFS();
-  const [NFTTokenIds, setNFTTokenIds] = useState([]);
-  const [totalNFTs, setTotalNFTs] = useState();
-  const [fetchSuccess, setFetchSuccess] = useState(true);
+  const [GraveBalance, setGraveBalance] = useState([]);
+  const [totalGraveNFTs, setTotalGraveNFTs] = useState();
+   
+    
+     
   const {
-    fetch: getNFTTokenIds,
+    fetch: getGraveBalance,
     data,
     error,
     isLoading,
-  } = useMoralisWeb3ApiCall(token.getAllTokenIds, {
-    chain: chainId,
-    address: addr,
-    limit: 20,
-  });
+  } = useMoralisWeb3ApiCall(account.getNFTsForContract, { chain: chainId, token_address: addr });
+  const [fetchSuccess, setFetchSuccess] = useState(true);
 
   useEffect(() => {
     (async function() {
     if (data?.result) {
+      
       const NFTs = data.result;
-      setTotalNFTs(data.total);
       setFetchSuccess(true);
+      setTotalGraveNFTs(data.total);
       for (let NFT of NFTs) {
         if (NFT?.metadata) {
           NFT.metadata = JSON.parse(NFT.metadata);
@@ -40,36 +42,30 @@ export const useNFTTokenIds = (addr) => {
               });
           } catch (error) {
             setFetchSuccess(false);
-              
+
 /*          !!Temporary work around to avoid CORS issues when retrieving NFT images!!
             Create a proxy server as per https://dev.to/terieyenike/how-to-create-a-proxy-server-on-heroku-5b5c
             Replace <your url here> with your proxy server_url below
             Remove comments :)
- */
-            try {
-              await fetch(`https://fierce-mountain-52440.herokuapp.com/${NFT.token_uri}`)
-              .then(response => response.json())
-              .then(data => {
-                NFT.image = resolveLink(data.image);
-              });
-            } catch (error) {
-              setFetchSuccess(false);
-            }
+*/
+              try {
+                await fetch(`https://fierce-mountain-52440.herokuapp.com/${NFT.token_uri}`)
+                .then(response => response.json())
+                .then(data => {
+                  NFT.image = resolveLink(data.image);
+                });
+              } catch (error) {
+                setFetchSuccess(false);
+              }
 
+ 
           }
         }
       }
-      setNFTTokenIds(NFTs);
+      setGraveBalance(NFTs);
     }
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   })()}, [data]);
 
-  return {
-    getNFTTokenIds,
-    NFTTokenIds,
-    totalNFTs,
-    fetchSuccess,
-    error,
-    isLoading,
-  };
+  return { getGraveBalance, GraveBalance, totalGraveNFTs, fetchSuccess, error, isLoading };
 };

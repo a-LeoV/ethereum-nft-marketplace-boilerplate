@@ -6,6 +6,7 @@ import {
   Route,
   NavLink,
   Redirect,
+  useHistory,
 } from "react-router-dom";
 import Account from "components/Account";
 import Chains from "components/Chains";
@@ -57,18 +58,23 @@ const styles = {
 const App = ({ isServerInfo }) => {
   const { isWeb3Enabled, enableWeb3, isAuthenticated, isWeb3EnableLoading } =
     useMoralis();
-    
+    const [inputValue, setInputValue] = useState("explore");
 
   useEffect(() => {
     if (isAuthenticated && !isWeb3Enabled && !isWeb3EnableLoading) enableWeb3();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isWeb3Enabled]);
 
+  const history = useHistory();
+  const handleClick = () =>  history.push("/home");
+
   return (
     <Layout style={{ height: "100vh", overflow: "auto" }}>
-      <Router>
+      <Router >
         <Header style={styles.header}>
-          <Logo />
+          <Logo  />
+          <SearchCollections   setInputValue={setInputValue}/>
+
            <Menu
             theme="light"
             mode="horizontal"
@@ -91,8 +97,8 @@ const App = ({ isServerInfo }) => {
             <Menu.Item key="burn">
             <NavLink to="/burn">🔥 Mint MetaRugs</NavLink>
             </Menu.Item>
-            <Menu.Item key="transactions">
-              <NavLink to="/Transactions">📑 Your Transactions</NavLink>
+            <Menu.Item key="graveyard" onClick={() => setInputValue("explore")} >
+              <NavLink to="/Graveyard">⚰️ NFT Graveyard</NavLink>
             </Menu.Item>
           </Menu>
           <div style={styles.headerRight}>
@@ -112,8 +118,8 @@ const App = ({ isServerInfo }) => {
             <Route path="/burn">
               <Burn />
             </Route>
-            <Route path="/Transactions">
-              <NFTMarketTransactions />
+            <Route path="/Graveyard">
+              <NFTTokenIds inputValue={inputValue} setInputValue={setInputValue} />
             </Route>
           </Switch>
           <Redirect to="/Home" />
@@ -159,7 +165,7 @@ const App = ({ isServerInfo }) => {
 };
 
 export const Logo = () => (
-  <div style={{ display: "flex" }}>
+  <div style={{ display: "flex" }} >
     <svg
       width="96"
       height="62"
